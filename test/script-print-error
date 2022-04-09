@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "ERROR" 1>&2
+cat - | wc -c > /dev/null
