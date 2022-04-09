@@ -9,13 +9,14 @@ def compile_extension_regex(*extensions):
     return re.compile('|'.join([f'\.{e}' for e in extensions]), flags=re.IGNORECASE)
 
 BUFFER_SIZE = 128 * 1024
-SUPPORTED_EXTENSIONS = compile_extension_regex(
+FFMPEG_SUPPORTED_EXTENSIONS = [
     # Video
-    "mp4", "mov", "avi", "mkv",
+    "mp4", "mov", "avi", "mkv", "srt", "mpeg", "mpg",
     # Music
-    "aac", "mp3", "flac", "ogg", "m4a",
+    "aac", "mp3", "flac", "ogg", "m4a", "wav", "wma",
     # Pics
-    "jpg", "png", "gif")
+    "jpg", "jpeg", "png", "gif"]
+FFMPEG_SUPPORTED_EXTENSIONS_REGEX = compile_extension_regex(FFMPEG_SUPPORTED_EXTENSIONS)
 
 class ClosedException(BaseException):
     pass
@@ -43,7 +44,7 @@ class BasicStream:
         self.fd = -1
 
 def ffmpeg_supports(filename):
-    if SUPPORTED_EXTENSIONS.match(filename.suffix):
+    if FFMPEG_SUPPORTED_EXTENSIONS_REGEX.match(filename.suffix):
         return True
     return False
 

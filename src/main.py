@@ -7,15 +7,12 @@ import os
 import re
 
 from .jobqueue import JobQueue
-from .ffmpeg_validator import ffmpeg_supports, ffmpeg_validate
+from .ffmpeg_validator import ffmpeg_supports, ffmpeg_validate, FFMPEG_SUPPORTED_EXTENSIONS
 
-DEFAULT_EXTENSIONS = ','.join([
-    # Video
-    "mp4", "mov", "avi", "mkv", "srt",
-    # Music
-    "aac", "mp3", "flac", "ogg", "m4a",
-    # Pics
-    "jpg", "png", "gif",
+"""
+Default precious extensions that we want to preserve w/PAR2.
+"""
+DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
     # Docs
     "pdf",
     # Chiptunes
