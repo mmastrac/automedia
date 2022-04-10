@@ -15,7 +15,7 @@ FFMPEG_SUPPORTED_EXTENSIONS = [
     "aac", "mp3", "flac", "ogg", "m4a", "wav", "wma",
     # Pics
     "jpg", "jpeg", "png", "gif"]
-FFMPEG_SUPPORTED_EXTENSIONS_REGEX = compile_extension_regex(FFMPEG_SUPPORTED_EXTENSIONS)
+FFMPEG_SUPPORTED_EXTENSIONS_REGEX = compile_extension_regex(*FFMPEG_SUPPORTED_EXTENSIONS)
 
 class ClosedException(BaseException):
     pass
@@ -62,9 +62,14 @@ class FFMPEGValidateOperation(Operation):
     def operate(self, q: JobQueue, dir, files):
         stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
         for file in files:
-            q.submit(file, lambda q: self._job(q, stats, file))
+            q.submit(file.name, lambda q: self._job(q, stats, file))
         q.wait()
-        q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s), {stats['ignored']} ignored file(s)")
+        if stats['ignored']:
+            q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s), {stats['ignored']} ignored file(s)")
+        elif stats['bad']:
+            q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s)")
+        else:
+            q.info(f"{stats['good']} good file(s)")
 
     def _job(self, q, stats, file):
         if ffmpeg_supports(file):
