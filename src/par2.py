@@ -3,6 +3,7 @@ import subprocess
 
 from enum import Enum
 from pathlib import Path
+from typing import List
 from operation import Operation
 from subprocess import Popen
 
@@ -29,7 +30,7 @@ class RecoveryList:
     def write(self, file: Path):
         with open(file, 'wt') as f:
             f.write("[media-tools-v1]\n")
-            f.write('\n'.join(self.files))
+            f.write('\n'.join([x.name for x in self.files]))
 
 class RecoveryListState(Enum):
     MISSING = 0
@@ -47,7 +48,7 @@ class Par2Operation(Operation):
     def par2_index(self, dir):
         return dir / f'{self.recovery_name}.par2'
 
-    def validate_recovery_list(self, q, dir, files) -> RecoveryListState:
+    def validate_recovery_list(self, q, dir: Path, files: List[Path]) -> RecoveryListState:
         if not self.par2_index(dir).exists():
             if self.recovery_list(dir).exists():
                 q.warning("File list exists, but PAR2 does not exist")
@@ -55,8 +56,10 @@ class Par2Operation(Operation):
         if self.recovery_list(dir).exists():
             try:
                 list = RecoveryList.read(self.recovery_list(dir))
-                if list.files != files:
+                if list.files != [x.name for x in files]:
                     q.warning("PAR2 exists, but is out-of-date")
+                    q.warning(list.files)
+                    q.warning([x.name for x in files])
                 else:
                     q.info("PAR2 exists, and is up-to-date")
                     return RecoveryListState.UP_TO_DATE
@@ -83,7 +86,7 @@ class CreatePar2Operation(Par2Operation):
     def operate(self, q, dir, files):
         if self.validate_recovery_list(q, dir, files) != RecoveryListState.MISSING:
             return
-        args = ['par2', 'c'] + self.args + ['--', f'{self.recovery_name}'] + files
+        args = ['par2', 'c'] + self.args + ['--', f'{self.recovery_name}'] + [x.name for x in files]
         if self.run_par2(q, dir, args):
             if self.par2_index(dir).exists():
                 RecoveryList(files).write(self.recovery_list(dir))
@@ -96,7 +99,7 @@ class VerifyPar2Operation(Par2Operation):
         if self.validate_recovery_list(q, dir, files) != RecoveryListState.UP_TO_DATE:
             q.warning("Unable to verify directory")
             return
-        args = ['par2', 'v'] + self.args + ['--', f'{self.recovery_name}'] + files
+        args = ['par2', 'v'] + self.args + ['--', f'{self.recovery_name}'] + [x.name for x in files]
         if self.run_par2(q, dir, args):
             # If the user requested removal of PAR2 files, we should unlink our recovery list too
             if not self.par2_index(dir).exists():

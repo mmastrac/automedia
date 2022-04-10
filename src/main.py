@@ -1,3 +1,4 @@
+from concurrent.futures import process
 from pathlib import Path
 from stat import *
 import argparse
@@ -5,6 +6,9 @@ import glob
 import os
 import re
 import shlex
+import sys
+
+from path_walk import PathScanner
 
 from .jobqueue import JobQueue
 from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
@@ -22,32 +26,15 @@ DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
 
-def process_dir(q: JobQueue, extension_regex: re.Pattern, ignore_regex: re.Pattern, dir: Path, op: Operation):
-    files = []
-    unknown_extensions = set()
-    for f in os.listdir(dir):
-        if ignore_regex.fullmatch(f):
-            continue
-        filename = dir / f
-        st = os.lstat(filename)
-        # Ignore zero-length files
-        if st.st_size == 0:
-            continue
-        if S_ISREG(st.st_mode):
-            fullext = filename.suffix
-            if fullext:
-                if extension_regex.fullmatch(fullext):
-                    files.append(f)
-                else:
-                    unknown_extensions.add(fullext)
-        pass
-    if unknown_extensions:
-        l = list(unknown_extensions)
-        l.sort()
-        q.warning(f"Unknown extensions found in path: {' '.join(l)}")
-    if files:
-        files.sort()
-        op.operate(q, dir, files)
+def process_dir(q: JobQueue, scanner: PathScanner, dir: Path, op: Operation):
+    results = scanner.scan(dir)
+    if results.unknown_extensions:
+        q.warning(f"Unknown extensions found in path: {' '.join(results.unknown_extensions)}")
+    if results.media_list:
+        op.operate(q, dir, results.media_list)
+    for dir in results.directory_list:
+        q.submit(dir.name, lambda q: process_dir(q, scanner, dir, op))
+    q.wait()
 
 def compile_extension_regex(extensions):
     return re.compile('|'.join([f'\.{e}' for e in extensions.split(',')]), flags=re.IGNORECASE)
@@ -94,13 +81,16 @@ def main():
                 root = candidate
                 break
 
-    # Walk everything from the root dir, but only care about directories
-    for filename in glob.iglob(str(root / '**'), recursive=True):
-        st = os.lstat(filename)
-        if S_ISDIR(st.st_mode):
-            dir = Path(filename)
-            q.submit(dir.relative_to(root), lambda q: process_dir(q, extension_regex, ignore_regex, dir, operation))
+    if not root.is_dir():
+        print(f"Root must be a directory: {root}")
+        sys.exit(1)
 
+    scanner = PathScanner(
+        supported_extension_matcher=lambda p: p.suffix and extension_regex.fullmatch(p.suffix),
+        ignored_pattern_matcher=lambda p: ignore_regex.fullmatch(p.name),
+        spam_files_matcher=lambda _: False)
+
+    q.submit(None, lambda q: process_dir(q, scanner, root, operation))
     q.wait()
 
 try:

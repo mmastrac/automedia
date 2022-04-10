@@ -62,7 +62,7 @@ class FFMPEGValidateOperation(Operation):
     def operate(self, q: JobQueue, dir, files):
         stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
         for file in files:
-            q.submit(file, lambda q: self._job(q, stats, dir / file))
+            q.submit(file, lambda q: self._job(q, stats, file))
         q.wait()
         q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s), {stats['ignored']} ignored file(s)")
 
