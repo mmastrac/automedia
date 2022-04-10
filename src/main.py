@@ -1,16 +1,15 @@
-from abc import abstractmethod
 from pathlib import Path
 from stat import *
-from subprocess import Popen
 import argparse
 import glob
 import os
 import re
-import subprocess
 import shlex
 
 from .jobqueue import JobQueue
 from .ffmpeg_validator import ffmpeg_supports, ffmpeg_validate, FFMPEG_SUPPORTED_EXTENSIONS
+from .par2 import CreatePar2Operation, VerifyPar2Operation, DEFAULT_PAR2_CREATE_ARGS, DEFAULT_PAR2_VERIFY_ARGS
+from .operation import Operation, PrintFilesOperation
 
 """
 Default precious extensions that we want to preserve w/PAR2.
@@ -22,84 +21,6 @@ DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
     "d64", "mod", "s3m"])
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
-DEFAULT_PAR2_CREATE_ARGS = ' '.join(['-u', '-n3', '-r10'])
-DEFAULT_PAR2_VERIFY_ARGS = ' '.join(['-N'])
-
-class Operation:
-    @abstractmethod
-    def operate(dir, files):
-        pass
-
-class CreatePar2Operation:
-    def __init__(self, args, recovery_name) -> None:
-        self.args = list(args)
-        self.recovery_name = recovery_name
-    def operate(self, q, dir, files):
-        recovery_list_name = f'{self.recovery_name}.filelist'
-        recovery_list = dir / recovery_list_name
-        if recovery_list.exists():
-            with open(recovery_list, 'rt') as f:
-                header = f.readline()
-                if header.rstrip() != "[media-tools-v1]":
-                    q.error(f"Invalid {recovery_list_name} found (header was {header}), cannot create parity files")
-                    return
-                # Read the old files to compare to the current files
-                old_files = [x.rstrip() for x in f.readlines()]
-                old_files.sort()
-                if old_files != files:
-                    q.warning("PAR2 exists, but is out-of-date")
-                else:
-                    q.info("PAR2 exists, and is up-to-date")
-                    return
-        args = ['par2', 'c'] + self.args + ['--', f'{self.recovery_name}'] + files
-        cmd = Popen(args, executable="par2", encoding="utf8", errors="", cwd=dir, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        stdout, stderr = cmd.communicate()
-        if stderr:
-            q.error(stderr)
-        elif not stdout.find("\nDone"):
-            q.error(stdout)
-        elif cmd.returncode != 0:
-            q.error(f"PAR2 returned a non-zero errorcode: {cmd.returncode}")
-        else:
-            with open(recovery_list, 'wt') as f:
-                f.write("[media-tools-v1]\n")
-                f.write('\n'.join(files))
-            q.info("Done")
-
-class VerifyPar2Operation:
-    def __init__(self, args, recovery_name) -> None:
-        self.args = list(args)
-        self.recovery_name = recovery_name
-    def operate(self, q, dir, files):
-        recovery_list_name = f'{self.recovery_name}.filelist'
-        recovery_list = dir / recovery_list_name
-        if recovery_list.exists():
-            with open(recovery_list, 'rt') as f:
-                header = f.readline()
-                if header.rstrip() != "[media-tools-v1]":
-                    q.error(f"Invalid {recovery_list_name} found (header was {header}), cannot create parity files")
-                    return
-                # Read the old files to compare to the current files
-                old_files = [x.rstrip() for x in f.readlines()]
-                old_files.sort()
-                if old_files != files:
-                    q.warning("PAR2 exists, but is out-of-date")
-                else:
-                    q.info("PAR2 exists, and is up-to-date")
-        args = ['par2', 'v'] + self.args + ['--', f'{self.recovery_name}'] + files
-        cmd = Popen(args, executable="par2", encoding="utf8", errors="", cwd=dir, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        stdout, stderr = cmd.communicate()
-        if stderr:
-            q.error(stderr)
-        elif not stdout.find("\nDone"):
-            q.error(stdout)
-        elif cmd.returncode != 0:
-            q.error(f"PAR2 returned a non-zero errorcode: {cmd.returncode}")
-        else:
-            with open(recovery_list, 'wt') as f:
-                f.write("[media-tools-v1]\n")
-                f.write('\n'.join(files))
-            q.info("Done")
 
 class FFMPEGValidate:
     def operate(self, q, dir, files):
@@ -120,13 +41,6 @@ class FFMPEGValidate:
                 stats['good'] += 1
         else:
             stats['ignored'] += 1
-
-class PrintFilesOperation:
-    def operate(self, q, dir, files):
-        q.info(f"{len(files)} file(s)")
-        for file in files:
-            q.info(f"  {file}")
-        pass
 
 def process_dir(q: JobQueue, extension_regex: re.Pattern, ignore_regex: re.Pattern, dir: Path, op: Operation):
     files = []
