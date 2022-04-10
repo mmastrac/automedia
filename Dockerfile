@@ -5,7 +5,7 @@ RUN apt-get update \
     && apt-get install --yes ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-ADD media-verify /__application__/
+ADD automedia /__application__/
 ADD src/*.py /__application__/src/
 
-ENTRYPOINT [ "/__application__/media-verify" ]
+ENTRYPOINT [ "/__application__/automedia" ]
