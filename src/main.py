@@ -22,14 +22,13 @@ DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
 
-class FFMPEGValidate:
+class FFMPEGValidate(Operation):
     def operate(self, q, dir, files):
         stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
         for file in files:
             q.submit(file, lambda q: self._job(q, stats, dir / file))
         q.wait()
         q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s), {stats['ignored']} ignored file(s)")
-        pass
 
     def _job(self, q, stats, file):
         if ffmpeg_supports(file):
@@ -105,7 +104,7 @@ def main():
         operation = VerifyPar2Operation(shlex.split(args.par2_args), args.par2_name)
     q = JobQueue()
 
-    # Walk everything from the root dir, but only care about directories
+    # Docker-awareness
     root = Path(args.root_dir)
     if args.container_prefix:
         for candidate in args.container_prefix.split(','):
@@ -114,6 +113,7 @@ def main():
                 root = candidate
                 break
 
+    # Walk everything from the root dir, but only care about directories
     for filename in glob.iglob(str(root / '**'), recursive=True):
         st = os.lstat(filename)
         if S_ISDIR(st.st_mode):
