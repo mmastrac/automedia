@@ -22,7 +22,8 @@ DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
     "d64", "mod", "s3m"])
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
-DEFAULT_PAR2_CREATE_ARGS = ' '.join(['-u', '-n3', '-r25'])
+DEFAULT_PAR2_CREATE_ARGS = ' '.join(['-u', '-n3', '-r10'])
+DEFAULT_PAR2_VERIFY_ARGS = ' '.join(['-N'])
 
 class Operation:
     @abstractmethod
@@ -51,6 +52,41 @@ class CreatePar2Operation:
                     q.info("PAR2 exists, and is up-to-date")
                     return
         args = ['par2', 'c'] + self.args + ['--', f'{self.recovery_name}'] + files
+        cmd = Popen(args, executable="par2", encoding="utf8", errors="", cwd=dir, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        stdout, stderr = cmd.communicate()
+        if stderr:
+            q.error(stderr)
+        elif not stdout.find("\nDone"):
+            q.error(stdout)
+        elif cmd.returncode != 0:
+            q.error(f"PAR2 returned a non-zero errorcode: {cmd.returncode}")
+        else:
+            with open(recovery_list, 'wt') as f:
+                f.write("[media-tools-v1]\n")
+                f.write('\n'.join(files))
+            q.info("Done")
+
+class VerifyPar2Operation:
+    def __init__(self, args, recovery_name) -> None:
+        self.args = list(args)
+        self.recovery_name = recovery_name
+    def operate(self, q, dir, files):
+        recovery_list_name = f'{self.recovery_name}.filelist'
+        recovery_list = dir / recovery_list_name
+        if recovery_list.exists():
+            with open(recovery_list, 'rt') as f:
+                header = f.readline()
+                if header.rstrip() != "[media-tools-v1]":
+                    q.error(f"Invalid {recovery_list_name} found (header was {header}), cannot create parity files")
+                    return
+                # Read the old files to compare to the current files
+                old_files = [x.rstrip() for x in f.readlines()]
+                old_files.sort()
+                if old_files != files:
+                    q.warning("PAR2 exists, but is out-of-date")
+                else:
+                    q.info("PAR2 exists, and is up-to-date")
+        args = ['par2', 'v'] + self.args + ['--', f'{self.recovery_name}'] + files
         cmd = Popen(args, executable="par2", encoding="utf8", errors="", cwd=dir, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE)
         stdout, stderr = cmd.communicate()
         if stderr:
@@ -137,6 +173,10 @@ def main():
     par2_create_cmd = commands.add_parser("par2-create", help="create a PAR2 archive in each directory")
     par2_create_cmd.add_argument("--par2-args", default=DEFAULT_PAR2_CREATE_ARGS, help=f"arguments to pass to PAR2 (default {DEFAULT_PAR2_CREATE_ARGS})")
     par2_create_cmd.add_argument("--name", dest="par2_name", default="recovery", help="recovery filename (for .par2 and .filelist files)")
+    par2_verify_cmd = commands.add_parser("par2-verify", help="verify the PAR2 archive in each directory")
+    par2_verify_cmd.add_argument("--par2-args", default=DEFAULT_PAR2_VERIFY_ARGS, help=f"arguments to pass to PAR2 (default {DEFAULT_PAR2_VERIFY_ARGS})")
+    par2_verify_cmd.add_argument("--name", dest="par2_name", default="recovery", help="recovery filename (for .par2 and .filelist files)")
+
     args = parser.parse_args()
 
     extension_regex = compile_extension_regex(args.extensions)
@@ -147,6 +187,8 @@ def main():
         operation = PrintFilesOperation()
     if args.command == 'par2-create':
         operation = CreatePar2Operation(shlex.split(args.par2_args), args.par2_name)
+    if args.command == 'par2-verify':
+        operation = VerifyPar2Operation(shlex.split(args.par2_args), args.par2_name)
     q = JobQueue()
 
     # Walk everything from the root dir, but only care about directories
