@@ -1,6 +1,7 @@
 import os
 import re
 
+from .jobqueue import JobQueue
 from .forward_progress import subprocess_forward_progress
 from .operation import Operation
 
@@ -58,7 +59,7 @@ def ffmpeg_validate(input, timeout=10, executable="ffmpeg", progress_callback=No
     return subprocess_forward_progress(input, args, executable, timeout=timeout, progress_callback=progress_callback)
 
 class FFMPEGValidateOperation(Operation):
-    def operate(self, q, dir, files):
+    def operate(self, q: JobQueue, dir, files):
         stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
         for file in files:
             q.submit(file, lambda q: self._job(q, stats, dir / file))

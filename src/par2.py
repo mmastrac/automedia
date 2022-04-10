@@ -66,7 +66,7 @@ class Par2Operation(Operation):
         return RecoveryListState.MISSING
 
     def run_par2(self, q, dir, args):
-        q.info(args)
+        # q.info(args)
         cmd = Popen(args, executable="par2", encoding="utf8", errors="", cwd=dir, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE)
         stdout, stderr = cmd.communicate()
         if stderr:
