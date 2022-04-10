@@ -1,14 +1,11 @@
 from concurrent.futures import process
 from pathlib import Path
-from stat import *
 import argparse
-import glob
-import os
 import re
 import shlex
 import sys
 
-from path_walk import PathScanner
+from path_scan import PathScanner
 
 from .jobqueue import JobQueue
 from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
@@ -44,8 +41,9 @@ def compile_ignore_regex(files):
 
 def main():
     parser = argparse.ArgumentParser(description='Process media directories to validate and add parity files')
-    parser.add_argument("--root", required=True, dest="root_dir", action="store", help="root directory for media")
     parser.add_argument("--hidden-container-prefix", dest="container_prefix", action="store", help=argparse.SUPPRESS)
+    parser.add_argument("--hidden-container-pwd", dest="container_pwd", action="store", help=argparse.SUPPRESS)
+    parser.add_argument("--root", required=True, dest="root_dir", action="store", help="root directory for media")
     parser.add_argument("--extensions", default=DEFAULT_EXTENSIONS, help=f"file extensions to include in processing (default {DEFAULT_EXTENSIONS})")
     parser.add_argument("--ignore", default=DEFAULT_IGNORE_FILES, help=f"file regular expressions to completely exclude in processing (default {DEFAULT_IGNORE_FILES})")
     commands = parser.add_subparsers(dest="command", required=True, help="sub-command help (use sub-command --help for more info)")
@@ -75,6 +73,8 @@ def main():
     # Docker-awareness
     root = Path(args.root_dir)
     if args.container_prefix:
+        pwd = Path(args.container_pwd)
+        root = pwd / root
         for candidate in args.container_prefix.split(','):
             candidate = Path(candidate) / root.relative_to('/')
             if candidate.exists():
