@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run -v/:/__root__/ mmastrac/automedia --hidden-container-pwd="$(pwd)" --hidden-container-prefix=/__root__/host_mnt/,/__root__/ "$@"
+docker run --rm -v/:/__root__/ mmastrac/automedia --hidden-container-pwd="$(pwd)" --hidden-container-prefix=/__root__/host_mnt/,/__root__/ "$@"
