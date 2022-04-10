@@ -7,7 +7,7 @@ import re
 import shlex
 
 from .jobqueue import JobQueue
-from .ffmpeg_validator import ffmpeg_supports, ffmpeg_validate, FFMPEG_SUPPORTED_EXTENSIONS
+from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
 from .par2 import CreatePar2Operation, VerifyPar2Operation, DEFAULT_PAR2_CREATE_ARGS, DEFAULT_PAR2_VERIFY_ARGS
 from .operation import Operation, PrintFilesOperation
 
@@ -21,25 +21,6 @@ DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
     "d64", "mod", "s3m"])
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
-
-class FFMPEGValidate(Operation):
-    def operate(self, q, dir, files):
-        stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
-        for file in files:
-            q.submit(file, lambda q: self._job(q, stats, dir / file))
-        q.wait()
-        q.info(f"{stats['good']} good file(s), {stats['bad']} bad file(s), {stats['ignored']} ignored file(s)")
-
-    def _job(self, q, stats, file):
-        if ffmpeg_supports(file):
-            errors = ffmpeg_validate(file)
-            if errors:
-                stats['bad'] += 1
-                q.error(errors)
-            else:
-                stats['good'] += 1
-        else:
-            stats['ignored'] += 1
 
 def process_dir(q: JobQueue, extension_regex: re.Pattern, ignore_regex: re.Pattern, dir: Path, op: Operation):
     files = []
@@ -95,7 +76,7 @@ def main():
     extension_regex = compile_extension_regex(args.extensions)
     ignore_regex = compile_ignore_regex(args.ignore)
     if args.command == 'verify':
-        operation = FFMPEGValidate()
+        operation = FFMPEGValidateOperation()
     if args.command == 'print':
         operation = PrintFilesOperation()
     if args.command == 'par2-create':
