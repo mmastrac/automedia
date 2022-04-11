@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "automedia"
-version = "0.2"
+version = "0.3"
 description = "Automedia is a tool to manage large media libraries, whether it be audio or video."
 license = {file="LICENSE"}
 readme = "README.md"
