@@ -16,6 +16,13 @@ FFMPEG_SUPPORTED_EXTENSIONS = [
     # Pics
     "jpg", "jpeg", "png", "gif"]
 FFMPEG_SUPPORTED_EXTENSIONS_REGEX = compile_extension_regex(*FFMPEG_SUPPORTED_EXTENSIONS)
+FFMPEG_VERIFY_ARGS = [
+        "-xerror",
+        "-v", "error",
+        "-i", "-",
+        "-f", "null",
+        "-"
+    ]
 
 class ClosedException(BaseException):
     pass
@@ -48,17 +55,12 @@ def ffmpeg_supports(filename):
     return False
 
 def ffmpeg_validate(input, timeout=10, executable="ffmpeg", progress_callback=None):
-    args = [
-        "-xerror",
-        "-v", "error",
-        "-i", "-",
-        "-f", "null",
-        "-"
-    ]
-
-    return subprocess_forward_progress(input, args, executable, timeout=timeout, progress_callback=progress_callback)
+    return subprocess_forward_progress(input, FFMPEG_VERIFY_ARGS, executable, timeout=timeout, progress_callback=progress_callback)
 
 class FFMPEGValidateOperation(Operation):
+    def initialize(self, q, dir):
+        q.info(f"Verifying internal consistency of media files: ffmpeg {' '.join(FFMPEG_VERIFY_ARGS)} < [file] > /dev/null")
+
     def operate(self, q: JobQueue, dir, files):
         stats = { 'good': 0, 'bad': 0, 'ignored': 0 }
         for file in files:

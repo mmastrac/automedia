@@ -89,6 +89,10 @@ def do_main():
         ignored_pattern_matcher=lambda p: ignore_regex.fullmatch(p.name),
         spam_files_matcher=lambda _: False)
 
+    # Allow the operation to initalize and log if needed
+    operation.initialize(q, root)
+    q.flush_logs()
+
     q.submit(None, lambda q: process_dir(q, scanner, root, operation))
     q.wait()
 

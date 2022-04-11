@@ -81,11 +81,17 @@ class Par2Operation(Operation):
             return True
         return False
 
+    def initialize(self, q, dir):
+        self.root_args = args = ['par2', self.COMMAND] + self.args + ['--', f'{self.recovery_name}']
+        q.info(f"{self.VERB} par2 files: {' '.join(self.root_args + ['[files...]'])}")
+
 class CreatePar2Operation(Par2Operation):
+    COMMAND = 'create'
+    VERB = 'Creating'
     def operate(self, q, dir, files):
         if self.validate_recovery_list(q, dir, files) != RecoveryListState.MISSING:
             return
-        args = ['par2', 'c'] + self.args + ['--', f'{self.recovery_name}'] + [x.name for x in files]
+        args = self.root_args + [x.name for x in files]
         if self.run_par2(q, dir, args):
             if self.par2_index(dir).exists():
                 RecoveryList(files).write(self.recovery_list(dir))
@@ -94,11 +100,13 @@ class CreatePar2Operation(Par2Operation):
                 q.warning("No PAR2 files were generated")
 
 class VerifyPar2Operation(Par2Operation):
+    COMMAND = 'verify'
+    VERB = 'Verifying'
     def operate(self, q, dir, files):
         if self.validate_recovery_list(q, dir, files) != RecoveryListState.UP_TO_DATE:
             q.warning("Unable to verify directory")
             return
-        args = ['par2', 'v'] + self.args + ['--', f'{self.recovery_name}'] + [x.name for x in files]
+        args = self.root_args + [x.name for x in files]
         if self.run_par2(q, dir, args):
             # If the user requested removal of PAR2 files, we should unlink our recovery list too
             if not self.par2_index(dir).exists():
