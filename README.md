@@ -5,7 +5,7 @@ Automedia is a tool to manage large media libraries, whether it be audio or vide
 The tool currently supports the following operations:
 
  * Printing/logging to list media files
- * Verification of media correctness via FFMPEG (test-decoding of supported files)
+ * Verification of media correctness via `ffmpeg` (test-decoding of supported files)
  * PAR2 creation and verification
 
 ## Installation
@@ -20,7 +20,7 @@ Print a list of media files we find:
 
 `automedia --root /media print`
 
-Verify the media files we find using ffmpeg:
+Verify the media files we find using `ffmpeg`:
 
 `automedia --root /media verify`
 

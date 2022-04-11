@@ -4,7 +4,6 @@ import subprocess
 from enum import Enum
 from pathlib import Path
 from typing import List
-from operation import Operation
 from subprocess import Popen
 
 from .operation import Operation

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "twine", "build"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "automedia"
+version = "0.2"
+description = "Automedia is a tool to manage large media libraries, whether it be audio or video."
+license = {file="LICENSE"}
+readme = "README.md"
+authors = [
+    { name="Matt Mastracci", email="matthew@mastracci.com" },
+    { name="Estefania Barreto-Ojeda", email="estefania@ojeda-e.com" },
+]
+
+[project.scripts]
+automedia = "automedia.main:main"

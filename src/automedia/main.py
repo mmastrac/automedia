@@ -5,8 +5,7 @@ import re
 import shlex
 import sys
 
-from path_scan import PathScanner
-
+from .path_scan import PathScanner
 from .jobqueue import JobQueue
 from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
 from .par2 import CreatePar2Operation, VerifyPar2Operation, DEFAULT_PAR2_CREATE_ARGS, DEFAULT_PAR2_VERIFY_ARGS
@@ -39,7 +38,7 @@ def compile_extension_regex(extensions):
 def compile_ignore_regex(files):
     return re.compile('|'.join([f'({f})' for f in files.split(',')]))
 
-def main():
+def do_main():
     parser = argparse.ArgumentParser(description='Process media directories to validate and add parity files')
     parser.add_argument("--hidden-container-prefix", dest="container_prefix", action="store", help=argparse.SUPPRESS)
     parser.add_argument("--hidden-container-pwd", dest="container_pwd", action="store", help=argparse.SUPPRESS)
@@ -93,7 +92,8 @@ def main():
     q.submit(None, lambda q: process_dir(q, scanner, root, operation))
     q.wait()
 
-try:
-    main()
-except KeyboardInterrupt:
-    print("Interrupted by user!")
+def main():
+    try:
+        do_main()
+    except KeyboardInterrupt:
+        print("Interrupted by user!")
