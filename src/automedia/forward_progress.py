@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+from pathlib import Path
 from subprocess import Popen, TimeoutExpired
 from threading import Thread
 from typing import List
@@ -35,7 +36,7 @@ class BasicStream:
 """
 Create a subprocess and ensure that it's always making forward progress by consuming stdin.
 """
-def subprocess_forward_progress(input, args, executable, timeout=10, progress_callback=None) -> List[str]:
+def subprocess_forward_progress(input: Path, args: List[str], executable: str, timeout=10, progress_callback=None) -> List[str]:
     process = Popen(args=args, executable=executable, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     stdin = BasicStream(process.stdin.fileno())
     stderr = BasicStream(process.stderr.fileno())

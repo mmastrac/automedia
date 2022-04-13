@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 class Operation:
     @abstractmethod
-    def operate(self, dir, files):
+    def operate(self, q, dir, files):
         pass
 
     @abstractmethod

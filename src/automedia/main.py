@@ -8,6 +8,7 @@ import sys
 from .path_scan import PathScanner
 from .jobqueue import JobQueue
 from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
+from .ffmpeg_transcoder import FFMPEG_PRESETS, FFMPEGTranscoderOperation
 from .par2 import CreatePar2Operation, VerifyPar2Operation, DEFAULT_PAR2_CREATE_ARGS, DEFAULT_PAR2_VERIFY_ARGS
 from .operation import Operation, PrintFilesOperation
 
@@ -47,6 +48,9 @@ def do_main():
     parser.add_argument("--ignore", default=DEFAULT_IGNORE_FILES, help=f"file regular expressions to completely exclude in processing (default {DEFAULT_IGNORE_FILES})")
     commands = parser.add_subparsers(dest="command", required=True, help="sub-command help (use sub-command --help for more info)")
     verify_cmd = commands.add_parser("verify", help="verify media files are corruption-free with FFMPEG")
+    transcode_cmd = commands.add_parser("transcode", help="transcode media files with FFMPEG")
+    transcode_cmd.add_argument("--preset", required=True, help=f"output format preset (one of {' '.join(FFMPEG_PRESETS.keys())})")
+    transcode_cmd.add_argument("--output", required=True, help=f"output directory")
     print_cmd = commands.add_parser("print", help="print all media files")
     par2_create_cmd = commands.add_parser("par2-create", help="create a PAR2 archive in each directory")
     par2_create_cmd.add_argument("--par2-args", default=DEFAULT_PAR2_CREATE_ARGS, help=f"arguments to pass to PAR2 (default {DEFAULT_PAR2_CREATE_ARGS})")
@@ -61,12 +65,18 @@ def do_main():
     ignore_regex = compile_ignore_regex(args.ignore)
     if args.command == 'verify':
         operation = FFMPEGValidateOperation()
-    if args.command == 'print':
+    elif args.command == 'transcode':
+        preset = FFMPEG_PRESETS[args.preset]
+        operation = FFMPEGTranscoderOperation(Path(args.output), preset.args, preset.ext)
+    elif args.command == 'print':
         operation = PrintFilesOperation()
-    if args.command == 'par2-create':
+    elif args.command == 'par2-create':
         operation = CreatePar2Operation(shlex.split(args.par2_args), args.par2_name)
-    if args.command == 'par2-verify':
+    elif args.command == 'par2-verify':
         operation = VerifyPar2Operation(shlex.split(args.par2_args), args.par2_name)
+    else:
+        print("Unexpected operation")
+        sys.exit(1)
     q = JobQueue()
 
     # Docker-awareness
