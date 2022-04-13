@@ -7,7 +7,8 @@ import sys
 
 from .path_scan import PathScanner
 from .jobqueue import JobQueue
-from .ffmpeg_validator import FFMPEGValidateOperation, FFMPEG_SUPPORTED_EXTENSIONS
+from .ffmpeg import FFMPEG_SUPPORTED_EXTENSIONS
+from .ffmpeg_validator import FFMPEGValidateOperation
 from .ffmpeg_transcoder import FFMPEG_PRESETS, FFMPEGTranscoderOperation
 from .par2 import CreatePar2Operation, VerifyPar2Operation, DEFAULT_PAR2_CREATE_ARGS, DEFAULT_PAR2_VERIFY_ARGS
 from .operation import Operation, PrintFilesOperation

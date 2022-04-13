@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
+from .ffmpeg import ffmpeg_supports
 from .forward_progress import subprocess_forward_progress
 from .operation import Operation
 
@@ -37,9 +38,12 @@ class FFMPEGTranscoderOperation(Operation):
         q.wait()
 
     def _job(self, q, file: Path):
-        q.info(f"Transcoding...")
-        out = self.output_dir / file.with_suffix(self.extension).relative_to(self.root)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        args = self.transcode_args + [str(out)]
-        errors = subprocess_forward_progress(file, args, "ffmpeg")
-        q.info(f"Size: {file.stat().st_size // 1024}k -> {out.stat().st_size // 1024}k")
+        if ffmpeg_supports(file):
+            q.info(f"Transcoding...")
+            out = self.output_dir / file.with_suffix(self.extension).relative_to(self.root)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            args = self.transcode_args + [str(out)]
+            errors = subprocess_forward_progress(file, args, "ffmpeg")
+            if errors:
+                q.error(errors)
+            q.info(f"Size: {file.stat().st_size // 1024}k -> {out.stat().st_size // 1024}k")

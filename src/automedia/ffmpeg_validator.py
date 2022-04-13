@@ -1,21 +1,8 @@
-import os
-import re
-
+from .ffmpeg import ffmpeg_supports
 from .jobqueue import JobQueue
 from .forward_progress import subprocess_forward_progress
 from .operation import Operation
 
-def compile_extension_regex(*extensions):
-    return re.compile('|'.join([f'\.{e}' for e in extensions]), flags=re.IGNORECASE)
-
-FFMPEG_SUPPORTED_EXTENSIONS = [
-    # Video
-    "mp4", "mov", "avi", "mkv", "srt", "mpeg", "mpg",
-    # Music
-    "aac", "mp3", "flac", "ogg", "m4a", "wav", "wma",
-    # Pics
-    "jpg", "jpeg", "png", "gif"]
-FFMPEG_SUPPORTED_EXTENSIONS_REGEX = compile_extension_regex(*FFMPEG_SUPPORTED_EXTENSIONS)
 FFMPEG_VERIFY_ARGS = [
         "-xerror",
         "-v", "error",
@@ -23,36 +10,6 @@ FFMPEG_VERIFY_ARGS = [
         "-f", "null",
         "-"
     ]
-
-class ClosedException(BaseException):
-    pass
-
-"""
-We don't need the full complexity of the python streams, so let's work directly off OS file descriptors.
-"""
-class BasicStream:
-    def __init__(self, fd) -> None:
-        self.fd = fd
-    def read(self, n):
-        if self.fd == -1:
-            raise ClosedException("Read on closed stream")
-        return os.read(self.fd, n)
-    def write(self, data):
-        if self.fd == -1:
-            raise ClosedException("Write on closed stream")
-        return os.write(self.fd, data)
-    def close(self):
-        if self.fd != -1:
-            try:
-                os.close(self.fd)
-            except OSError:
-                pass
-        self.fd = -1
-
-def ffmpeg_supports(filename):
-    if FFMPEG_SUPPORTED_EXTENSIONS_REGEX.match(filename.suffix):
-        return True
-    return False
 
 def ffmpeg_validate(input, timeout=10, executable="ffmpeg", progress_callback=None):
     return subprocess_forward_progress(input, FFMPEG_VERIFY_ARGS, executable, timeout=timeout, progress_callback=progress_callback)

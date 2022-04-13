@@ -6,6 +6,7 @@ The tool currently supports the following operations:
 
  * Printing/logging to list media files
  * Verification of media correctness via `ffmpeg` (test-decoding of supported files)
+ * Transcoding media libraries to other formats via `ffmpeg`
  * PAR2 creation and verification
 
 ## Installation
@@ -42,6 +43,10 @@ Print a list of media files we find:
 Verify the media files we find using `ffmpeg`:
 
 `automedia --root /media verify`
+
+Transcode the media files from `/media` to `/mnt/usb_stick` to 64k AAC format:
+
+`automedia --root /media transcode --preset aac-64k --output=/mnt/usb_stick`
 
 Create PAR2 files for the media files we find:
 
