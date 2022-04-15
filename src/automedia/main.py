@@ -4,6 +4,7 @@ import argparse
 import re
 import shlex
 import sys
+import importlib.metadata
 
 from .path_scan import PathScanner
 from .jobqueue import JobQueue
@@ -41,7 +42,11 @@ def compile_ignore_regex(files):
     return re.compile('|'.join([f'({f})' for f in files.split(',')]))
 
 def do_main():
-    parser = argparse.ArgumentParser(description='Process media directories to validate and add parity files')
+    try:
+        __version__ = importlib.metadata.version(__package__ or __name__)
+    except:
+        __version__ = "(dev)"
+    parser = argparse.ArgumentParser(description=f'automedia {__version__}: Process media directories to validate and add parity files')
     parser.add_argument("--hidden-container-prefix", dest="container_prefix", action="store", help=argparse.SUPPRESS)
     parser.add_argument("--hidden-container-pwd", dest="container_pwd", action="store", help=argparse.SUPPRESS)
     parser.add_argument("--root", required=True, dest="root_dir", action="store", help="root directory for media")

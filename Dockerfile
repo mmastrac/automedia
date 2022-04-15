@@ -1,11 +1,13 @@
 FROM ubuntu:latest
 
+ARG AUTOMEDIA_VERSION
+ADD dist/automedia-${AUTOMEDIA_VERSION}-py3-none-any.whl /tmp/
+
 RUN apt-get update \
-    && apt-get install --no-install-recommends --yes python3 par2 \
+    && apt-get install --no-install-recommends --yes python3 pip par2 \
     && apt-get install --yes ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install /tmp/automedia-${AUTOMEDIA_VERSION}-py3-none-any.whl \
+    && rm /tmp/*.whl
 
-ADD automedia /__application__/
-ADD src/*.py /__application__/src/
-
-ENTRYPOINT [ "/__application__/automedia" ]
+ENTRYPOINT [ "automedia" ]
