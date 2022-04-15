@@ -28,7 +28,7 @@ class PathScanner:
         self.ignored_pattern_matcher = ignored_pattern_matcher
         self.spam_files_matcher = spam_files_matcher
 
-    def scan(self, dir):
+    def scan(self, q, dir):
         files = []
         dirs = []
         unknown_extensions = set()
@@ -36,7 +36,11 @@ class PathScanner:
             filename = dir / f
             if self.ignored_pattern_matcher(filename):
                 continue
-            st = os.lstat(filename)
+            try:
+                st = os.lstat(filename)
+            except Exception as e:
+                q.error(f"Unrecoverable filesystem error while trying to read {f} ({e})")
+                continue
             # Ignore zero-length files
             if st.st_size == 0:
                 continue

@@ -25,7 +25,7 @@ DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.p
 DEFAULT_SPAM_FILES =','.join(["RARBG.txt", "RARBG_DO_NOT_MIRROR.exe", "WWW.YIFY-TORRENTS.COM.jpg", "www.YTS.AM.jpg", "WWW.YTS.TO.jpg", "www.YTS.LT.jpg"])
 
 def process_dir(q: JobQueue, scanner: PathScanner, dir: Path, op: Operation):
-    results = scanner.scan(dir)
+    results = scanner.scan(q, dir)
     if results.unknown_extensions:
         q.warning(f"Unknown extensions found in path: {' '.join(results.unknown_extensions)}")
     if results.media_list:
