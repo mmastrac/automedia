@@ -9,7 +9,7 @@ class Operation:
     def initialize(self, q, dir):
         pass
 
-class PrintFilesOperation:
+class PrintFilesOperation(Operation):
     def operate(self, q, _, files):
         q.info(f"{len(files)} file(s)")
         for file in files:
