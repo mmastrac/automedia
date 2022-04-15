@@ -55,7 +55,7 @@ def do_main():
     commands = parser.add_subparsers(dest="command", required=True, help="sub-command help (use sub-command --help for more info)")
     verify_cmd = commands.add_parser("verify", help="verify media files are corruption-free with FFMPEG")
     transcode_cmd = commands.add_parser("transcode", help="transcode media files with FFMPEG")
-    transcode_cmd.add_argument("--preset", required=True, help=f"output format preset (one of {' '.join(FFMPEG_PRESETS.keys())})")
+    transcode_cmd.add_argument("--preset", required=True, choices=FFMPEG_PRESETS.keys(), help=f"output format preset (one of {' '.join(FFMPEG_PRESETS.keys())})")
     transcode_cmd.add_argument("--output", required=True, help=f"output directory")
     print_cmd = commands.add_parser("print", help="print all media files")
     par2_create_cmd = commands.add_parser("par2-create", help="create a PAR2 archive in each directory")
