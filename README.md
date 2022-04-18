@@ -48,6 +48,10 @@ Transcode the media files from `/media` to `/mnt/usb_stick` to 64k AAC format:
 
 `automedia --root /media transcode --preset aac-64k --output=/mnt/usb_stick`
 
+Transcode the media files from `/media` to `/mnt/usb_stick` to FLAC format:
+
+`automedia --root /media transcode --preset flac --output=/mnt/usb_stick`
+
 Create PAR2 files for the media files we find:
 
 `automedia --root /media par2-create`
