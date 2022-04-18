@@ -69,3 +69,7 @@ Create PAR2 files for the media files we find:
 Verify PAR2 files for the media files we find:
 
 `automedia --root /media par2-verify`
+
+## Screenshots
+
+![An animated GIF showing automedia running a verify operation](docs/render.gif)
