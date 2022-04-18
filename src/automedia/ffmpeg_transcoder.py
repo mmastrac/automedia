@@ -18,7 +18,11 @@ FFMPEG_TRANSCODE_BASE_ARGS = [
     '-i', '-',
     '-vn']
 FFMPEG_PRESETS = {
-    'aac-64k': FFMPEGPreset(ext='m4a', args=['-c:a', 'aac', '-b:a', '64k', '-f', 'mp4'])
+    'aac-64k': FFMPEGPreset(ext='m4a', args=['-c:a', 'aac', '-b:a', '64k', '-f', 'mp4']),
+    'aac-128k': FFMPEGPreset(ext='m4a', args=['-c:a', 'aac', '-b:a', '128k', '-f', 'mp4']),
+    'mp3-128k': FFMPEGPreset(ext='mp3', args=['-c:a', 'mp3', '-b:a', '128k', '-f', 'mp3']),
+    'mp3-320k': FFMPEGPreset(ext='mp3', args=['-c:a', 'mp3', '-b:a', '320k', '-f', 'mp3']),
+    'flac': FFMPEGPreset(ext='flac', args=['-c:a', 'flac', '-f', 'flac']),
 }
 
 class FFMPEGTranscoderOperation(Operation):
