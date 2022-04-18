@@ -5,7 +5,7 @@ def compile_extension_regex(*extensions):
 
 FFMPEG_SUPPORTED_EXTENSIONS = [
     # Video
-    "mp4", "mov", "avi", "mkv", "srt", "mpeg", "mpg",
+    "mp4", "m4v", "mov", "avi", "mkv", "mpeg", "mpg",
     # Music
     "aac", "mp3", "flac", "ogg", "m4a", "wav", "wma",
     # Pics

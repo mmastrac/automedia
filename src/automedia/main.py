@@ -20,6 +20,8 @@ Default precious extensions that we want to preserve w/PAR2.
 DEFAULT_EXTENSIONS = ','.join(FFMPEG_SUPPORTED_EXTENSIONS + [
     # Docs
     "pdf",
+    # Subtitles
+    "srt", "idx", "sub",
     # Chiptunes
     "d64", "mod", "s3m"])
 DEFAULT_IGNORE_FILES = ','.join([r"\.DS_Store", r"Thumbs\.db", r"\._.*", r".*\.par2", r".*\.filelist"])
