@@ -4,14 +4,24 @@ Automedia is a tool to manage large media libraries, whether it be audio or vide
 
 The tool currently supports the following operations:
 
- * Printing/logging to list media files
- * Verification of media correctness via `ffmpeg` (test-decoding of supported files)
- * Transcoding media libraries to other formats via `ffmpeg`
- * PAR2 creation and verification
+ * **Printing/logging to list media files**: view your media files at a glance
+ * **Verification of media correctness via `ffmpeg`**: test-decoding of supported files to find bitrot
+ * **Transcoding media libraries to other formats via `ffmpeg`**: archive your media in a lossless/high-quality format, transcode for daily use or for older devices
+ * **PAR2 creation and verification**: prevent future bitrot of data at rest
+
+## But why?
+
+You can replace much of what this tool does using `find`, `xargs`, `grep` and a dash of scripting, but `automedia` deals with all of
+the incantations itself and has some intelligence to handle interaction with complex tools like as `ffmpeg`.
+
+## Requirements
+
+`automedia` requires the `ffmpeg` and `par2` executables to be fully operational. These must exist on the path for the application to function. It is
+recommended to use the dockerized version of this application as these requirements will be packaged up with it.
 
 ## Installation
 
-Automedia can be installed via pip, or can be run with all binary dependencies in a Docker container. 
+`automedia` can be installed via pip, or can be run with all binary dependencies in a Docker container. 
 
 ### Via pip
 
