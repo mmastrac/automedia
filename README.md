@@ -1,6 +1,6 @@
 # Automedia
 
-![PyPI](https://img.shields.io/pypi/v/automedia)
+[![PyPI](https://img.shields.io/pypi/v/automedia)](https://pypi.org/project/automedia/)
 
 Automedia is a tool to manage bitrot and formats in large media libraries, whether it be audio or video.
 
