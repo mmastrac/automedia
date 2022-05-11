@@ -43,7 +43,7 @@ def compile_extension_regex(extensions):
 def compile_ignore_regex(files):
     return re.compile('|'.join([f'({f})' for f in files.split(',')]))
 
-def do_main():
+def do_main(args):
     try:
         __version__ = importlib.metadata.version(__package__ or __name__)
     except:
@@ -67,7 +67,7 @@ def do_main():
     par2_verify_cmd.add_argument("--par2-args", default=DEFAULT_PAR2_VERIFY_ARGS, help=f"arguments to pass to PAR2 (default {DEFAULT_PAR2_VERIFY_ARGS})")
     par2_verify_cmd.add_argument("--name", dest="par2_name", default="recovery", help="recovery filename (for .par2 and .filelist files)")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args[1:])
 
     extension_regex = compile_extension_regex(args.extensions)
     ignore_regex = compile_ignore_regex(args.ignore)
@@ -114,8 +114,8 @@ def do_main():
     q.submit(None, lambda q: process_dir(q, scanner, root, operation))
     q.wait()
 
-def main():
+def main(args=sys.argv):
     try:
-        do_main()
+        do_main(args)
     except KeyboardInterrupt:
         print("Interrupted by user!")
