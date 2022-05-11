@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "automedia"
-version = "0.7"
+version = "0.8"
 description = "Automedia is a tool to manage large media libraries, whether it be audio or video."
 license = { text = "GNU General Public License v3 (GPLv3)" }
 readme = "README.md"
