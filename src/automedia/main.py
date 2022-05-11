@@ -74,7 +74,11 @@ def do_main(args):
         docker = Docker(args.container_pwd, args.container_prefix.split(','))
     else:
         docker = Docker.none()
+
     root = docker.dockerize_path(args.root_dir)
+    if not root.is_dir():
+        print(f"Root must be a directory: {args.root_dir}")
+        sys.exit(1)
 
     extension_regex = compile_extension_regex(args.extensions)
     ignore_regex = compile_ignore_regex(args.ignore)
@@ -93,10 +97,6 @@ def do_main(args):
         print("Unexpected operation")
         sys.exit(1)
     q = JobQueue()
-
-    if not root.is_dir():
-        print(f"Root must be a directory: {root}")
-        sys.exit(1)
 
     scanner = PathScanner(
         symlink_mode=SymlinkMode(args.symlink_mode),

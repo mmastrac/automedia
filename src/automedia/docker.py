@@ -1,6 +1,4 @@
-from lib2to3.pytree import Base
 from pathlib import Path
-from typing_extensions import Self
 
 class Docker:
     def __init__(self, pwd, prefixes) -> None:
@@ -12,15 +10,14 @@ class Docker:
         pwd = Path(pwd)
         prefixes = [Path(x) for x in prefixes]
         for candidate in prefixes:
-            candidate = Path(candidate) / pwd.relative_to('/')
-            if candidate.exists():
+            if (candidate / pwd.relative_to('/')).exists():
                 self.docker_prefix = candidate
                 return
 
         raise BaseException("Unable to locate docker root")
 
-    def none() -> Self:
+    def none():
         return Docker(None, None)
 
     def dockerize_path(self, path):
-        return self.docker_prefix / Path(path)
+        return self.docker_prefix / Path(path).relative_to('/')
