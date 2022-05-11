@@ -6,7 +6,7 @@ import shlex
 import sys
 import importlib.metadata
 
-from .path_scan import PathScanner
+from .path_scan import PathScanner, SymlinkMode
 from .jobqueue import JobQueue
 from .ffmpeg import FFMPEG_SUPPORTED_EXTENSIONS
 from .ffmpeg_validator import FFMPEGValidateOperation
@@ -52,7 +52,7 @@ def do_main(args):
     parser.add_argument("--hidden-container-prefix", dest="container_prefix", action="store", help=argparse.SUPPRESS)
     parser.add_argument("--hidden-container-pwd", dest="container_pwd", action="store", help=argparse.SUPPRESS)
     parser.add_argument("--root", required=True, dest="root_dir", action="store", help="root directory for media")
-    parser.add_argument("--symlinks", dest="allow_symlinks", action="store_true", help="Allow automedia to follow symlinks")
+    parser.add_argument("--symlinks", dest="symlink_mode", default=SymlinkMode.Warn.value, choices=[e.value for e in SymlinkMode], action="store", help="sets the symlink-following behavior (silently ignore, allow in all or some cases, or error)")
     parser.add_argument("--extensions", default=DEFAULT_EXTENSIONS, help=f"file extensions to include in processing (default {DEFAULT_EXTENSIONS})")
     parser.add_argument("--ignore", default=DEFAULT_IGNORE_FILES, help=f"file regular expressions to completely exclude in processing (default {DEFAULT_IGNORE_FILES})")
     commands = parser.add_subparsers(dest="command", required=True, help="sub-command help (use sub-command --help for more info)")
@@ -104,7 +104,7 @@ def do_main(args):
         sys.exit(1)
 
     scanner = PathScanner(
-        allow_symlinks=args.allow_symlinks,
+        symlink_mode=SymlinkMode(args.symlink_mode),
         supported_extension_matcher=lambda p: p.suffix and extension_regex.fullmatch(p.suffix),
         ignored_pattern_matcher=lambda p: ignore_regex.fullmatch(p.name),
         spam_files_matcher=lambda _: False)
