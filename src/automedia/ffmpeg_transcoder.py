@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-from .ffmpeg import ffmpeg_supports_types
+from .ffmpeg import MediaType, ffmpeg_supports_types
 from .forward_progress import subprocess_forward_progress
 from .operation import Operation
 
@@ -42,7 +42,7 @@ class FFMPEGTranscoderOperation(Operation):
         q.wait()
 
     def _job(self, q, file: Path):
-        if ffmpeg_supports_types(["video", "audio"], file):
+        if ffmpeg_supports_types([MediaType.Video, MediaType.Audio], file):
             q.info(f"Transcoding...")
             out = self.output_dir / file.with_suffix(self.extension).relative_to(self.root)
             out.parent.mkdir(parents=True, exist_ok=True)
