@@ -6,14 +6,20 @@ def compile_extension_regex(*extensions):
 
 FFMPEG_SUPPORTED_EXTENSIONS_BY_TYPE = {
     "video": ["mp4", "m4v", "mov", "avi", "mkv", "mpeg", "mpg"],
-    "music": ["aac", "mp3", "flac", "ogg", "m4a", "wav", "wma"],
-    "pics": ["jpg", "jpeg", "png", "gif"]
+    "audio": ["aac", "mp3", "flac", "ogg", "m4a", "wav", "wma"],
+    "image": ["jpg", "jpeg", "png", "gif"]
 }
 FFMPEG_SUPPORTED_EXTENSIONS = sum(FFMPEG_SUPPORTED_EXTENSIONS_BY_TYPE.values(), [])
 FFMPEG_SUPPORTED_EXTENSIONS_REGEX = {k: compile_extension_regex(*v) for k, v in FFMPEG_SUPPORTED_EXTENSIONS_BY_TYPE.items()} 
 
 def ffmpeg_supports(filename):
     for type in FFMPEG_SUPPORTED_EXTENSIONS_BY_TYPE.keys():
+        if ffmpeg_supports_type(type, filename):
+            return True
+    return False
+
+def ffmpeg_supports_types(types, filename):
+    for type in types:
         if ffmpeg_supports_type(type, filename):
             return True
     return False
