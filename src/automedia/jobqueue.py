@@ -1,3 +1,9 @@
+from dataclasses import dataclass
+
+@dataclass
+class JobResults:
+    errors: int = 0
+
 """
 Single-threaded job queue. This should be turned into a parallel job queue at some point.
 """
@@ -8,6 +14,7 @@ class JobQueue:
         self.waited = False
         self.subs = []
         self.logs = []
+        self.results = parent.results if parent else JobResults()
 
     def __del__(self):
         if not self.waited and len(self.subs) > 0:
@@ -29,6 +36,7 @@ class JobQueue:
         self.logs = []
 
     def error(self, msg):
+        self.results.errors += 1
         self._log("E", msg)
 
     def info(self, msg):
@@ -42,6 +50,7 @@ class JobQueue:
 
     def wait(self):
         self.waited = True
+        return self.results
 
     def is_root(self):
         return self.parent is None or self.name is None

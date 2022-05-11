@@ -1,9 +1,10 @@
+from ntpath import realpath
 import os
 
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from stat import S_ISDIR, S_ISREG
+from stat import S_ISDIR, S_ISREG, S_ISLNK
 from typing import Callable, List
 
 class EntryType(Enum):
@@ -20,10 +21,12 @@ class PathScanResults:
 
 class PathScanner:
     def __init__(self,
+        allow_symlinks = False,
         supported_extension_matcher: Callable[[Path], bool] = None,
         ignored_pattern_matcher: Callable[[Path], bool] = None,
         spam_files_matcher: Callable[[Path], bool] = None) -> None:
 
+        self.allow_symlinks = allow_symlinks
         self.supported_extension_matcher = supported_extension_matcher
         self.ignored_pattern_matcher = ignored_pattern_matcher
         self.spam_files_matcher = spam_files_matcher
@@ -44,7 +47,7 @@ class PathScanner:
             # Ignore zero-length files
             if st.st_size == 0:
                 continue
-            if S_ISREG(st.st_mode):
+            if S_ISREG(st.st_mode) or (self.allow_symlinks and S_ISLNK(st.st_mode)):
                 if self.supported_extension_matcher(filename):
                     files.append(filename)
                 else:

@@ -50,4 +50,7 @@ class FFMPEGTranscoderOperation(Operation):
             errors = subprocess_forward_progress(file, args, "ffmpeg")
             if errors:
                 q.error(errors)
-            q.info(f"Size: {file.stat().st_size // 1024}k -> {out.stat().st_size // 1024}k")
+            if out.exists():
+                q.info(f"Size: {file.stat().st_size // 1024}k -> {out.stat().st_size // 1024}k")
+            else:
+                q.error("Failed to transcode file")
