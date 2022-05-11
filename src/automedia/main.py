@@ -6,6 +6,7 @@ import shlex
 import sys
 import importlib.metadata
 
+from .docker import Docker
 from .path_scan import PathScanner, SymlinkMode
 from .jobqueue import JobQueue
 from .ffmpeg import FFMPEG_SUPPORTED_EXTENSIONS
@@ -69,6 +70,11 @@ def do_main(args):
     par2_verify_cmd.add_argument("--name", dest="par2_name", default="recovery", help="recovery filename (for .par2 and .filelist files)")
 
     args = parser.parse_args(args[1:])
+    if args.container_pwd and args.container_prefix:
+        docker = Docker(args.container_pwd, args.container_prefix.split(','))
+    else:
+        docker = Docker.none()
+    root = docker.dockerize_path(args.root_dir)
 
     extension_regex = compile_extension_regex(args.extensions)
     ignore_regex = compile_ignore_regex(args.ignore)
@@ -76,7 +82,7 @@ def do_main(args):
         operation = FFMPEGValidateOperation()
     elif args.command == 'transcode':
         preset = FFMPEG_PRESETS[args.preset]
-        operation = FFMPEGTranscoderOperation(Path(args.output), preset.args, preset.ext)
+        operation = FFMPEGTranscoderOperation(docker.dockerize_path(args.output), preset.args, preset.ext)
     elif args.command == 'print':
         operation = PrintFilesOperation()
     elif args.command == 'par2-create':
@@ -87,17 +93,6 @@ def do_main(args):
         print("Unexpected operation")
         sys.exit(1)
     q = JobQueue()
-
-    # Docker-awareness
-    root = Path(args.root_dir)
-    if args.container_prefix:
-        pwd = Path(args.container_pwd)
-        root = pwd / root
-        for candidate in args.container_prefix.split(','):
-            candidate = Path(candidate) / root.relative_to('/')
-            if candidate.exists():
-                root = candidate
-                break
 
     if not root.is_dir():
         print(f"Root must be a directory: {root}")
