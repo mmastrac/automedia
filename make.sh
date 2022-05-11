@@ -16,7 +16,7 @@ echo Building version "$VERSION"...
 
 sed -I.bak 's/version =.*/version = "'$RAW_VERSION'"/g' pyproject.toml && rm pyproject.toml.bak
 git diff --exit-code >/dev/null || (git add pyproject.toml && git commit -m "Bump version to $VERSION")
-git tag -d "$VERSION" 2>&1 >/dev/null || true
+git tag -d "$VERSION" >/dev/null 2>&1 || true
 git tag "$VERSION"
 
 python3 -m build
