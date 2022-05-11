@@ -28,3 +28,4 @@ echo
 echo 'docker push mmastrac/automedia:latest'
 echo 'docker push mmastrac/automedia:'$RAW_VERSION
 echo 'twine upload dist/automedia-'$RAW_VERSION'*'
+echo 'git push --tags'
