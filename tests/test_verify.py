@@ -8,7 +8,7 @@ def test_verify_good(dir):
     assert result == 0
 
 
-@pytest.mark.parametrize("dir", [1, 2])
+@pytest.mark.parametrize("dir", [1, 2, 3])
 def test_verify_bad(dir):
     result = main.do_main(['', '--symlinks', '--root', f'tests/verify-test-bad-{dir}', 'verify'])
     assert result == 1
