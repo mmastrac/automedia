@@ -22,3 +22,9 @@ git tag "$VERSION"
 python3 -m build
 twine check dist/*
 docker build . --build-arg AUTOMEDIA_VERSION="$RAW_VERSION" -t mmastrac/automedia:$RAW_VERSION -t mmastrac/automedia:latest
+
+echo 'Now publish the package:'
+echo
+echo 'docker push mmastrac/automedia:latest'
+echo 'docker push mmastrac/automedia:'$RAW_VERSION
+echo 'twine upload dist/automedia-'$RAW_VERSION'*'
